@@ -4,6 +4,6 @@ from faker import Faker
 
 N_USERS = 50000
 
-np.random.seed(42)
-random.seed(42)
-Faker.seed(42)
+np.random.seed(2001)
+random.seed(2001)
+Faker.seed(2001)
