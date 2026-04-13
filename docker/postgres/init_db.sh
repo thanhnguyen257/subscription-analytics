@@ -41,8 +41,21 @@ CREATE TABLE IF NOT EXISTS subscription_plans (
     billing_cycle VARCHAR(20),
     price DECIMAL(10,2),
     currency VARCHAR(10),
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+    subscription_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    plan_id BIGINT NOT NULL,
+    start_date DATE,
+    end_date DATE,
+    status VARCHAR(20),
+    current_mrr DECIMAL(10,2),
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (plan_id) REFERENCES subscription_plans(plan_id)
 );
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${POSTGRES_USER};
@@ -54,7 +67,9 @@ psql "$POSTGRES_CONN_STR" \
 psql "$POSTGRES_CONN_STR" \
 -c "\copy products FROM '/master_db/products.csv' CSV HEADER"
 psql "$POSTGRES_CONN_STR" \
--c "\copy products FROM '/master_db/plans.csv' CSV HEADER"
+-c "\copy subscription_plans FROM '/master_db/plans.csv' CSV HEADER"
+psql "$POSTGRES_CONN_STR" \
+-c "\copy subscriptions FROM '/master_db/subscriptions.csv' CSV HEADER"
 
 
 echo "PostgreSQL initialization completed!"

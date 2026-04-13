@@ -3,6 +3,7 @@ import random
 from faker import Faker
 
 N_USERS = 50000
+N_SUBSCRIPTION = 25
 
 np.random.seed(2001)
 random.seed(2001)
