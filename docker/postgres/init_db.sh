@@ -58,6 +58,16 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     FOREIGN KEY (plan_id) REFERENCES subscription_plans(plan_id)
 );
 
+CREATE TABLE IF NOT EXISTS subscription_changes (
+    change_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    subscription_id BIGINT NOT NULL,
+    old_plan_id INT,
+    new_plan_id INT,
+    change_type VARCHAR(20),
+    change_date DATE,
+    FOREIGN KEY (subscription_id) REFERENCES subscriptions(subscription_id)
+);
+
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${POSTGRES_USER};
 
 EOSQL
@@ -70,6 +80,8 @@ psql "$POSTGRES_CONN_STR" \
 -c "\copy subscription_plans FROM '/master_db/plans.csv' CSV HEADER"
 psql "$POSTGRES_CONN_STR" \
 -c "\copy subscriptions FROM '/master_db/subscriptions.csv' CSV HEADER"
+psql "$POSTGRES_CONN_STR" \
+-c "\copy subscription_changes FROM '/master_db/changes.csv' CSV HEADER"
 
 
 echo "PostgreSQL initialization completed!"

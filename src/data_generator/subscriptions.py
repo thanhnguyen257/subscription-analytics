@@ -2,12 +2,12 @@ import pandas as pd
 import numpy as np
 import random
 from datetime import timedelta
-from config import N_SUBSCRIPTION
+from config import N_SUBSCRIPTIONS
 
 def monthly_mrr(price, billing_cycle):
     return price if billing_cycle == "Monthly" else price / 12
 
-def generate_subscriptions(users_df, plans_df, n=N_SUBSCRIPTION):
+def generate_subscriptions(users_df, plans_df, n=N_SUBSCRIPTIONS):
     subs = []
 
     sub_id = 1
