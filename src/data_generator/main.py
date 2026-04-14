@@ -5,6 +5,7 @@ from subscriptions import generate_subscriptions
 from changes import generate_changes
 from payments import generate_payments
 from licenses import generate_licenses
+from allocations import generate_allocations
 
 import os
 
@@ -20,6 +21,7 @@ def main():
     changes_df = generate_changes(subs_df, plans_df)
     payments_df = generate_payments(subs_df, plans_df)
     licenses_df = generate_licenses(subs_df, plans_df)
+    allocations_df = generate_allocations(licenses_df)
 
     users_df.to_csv(f"{OUTPUT_DIR}/users.csv", index=False)
     products_df.to_csv(f"{OUTPUT_DIR}/products.csv", index=False)
@@ -28,6 +30,7 @@ def main():
     changes_df.to_csv(f"{OUTPUT_DIR}/changes.csv", index=False)
     payments_df.to_csv(f"{OUTPUT_DIR}/payments.csv", index=False)
     licenses_df.to_csv(f"{OUTPUT_DIR}/licenses.csv", index=False)
+    allocations_df.to_csv(f"{OUTPUT_DIR}/allocations.csv", index=False)
 
     print("Data generated successfully!")
 
