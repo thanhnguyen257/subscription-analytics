@@ -5,6 +5,7 @@ from faker import Faker
 N_USERS = 50000
 N_SUBSCRIPTIONS = 250000
 N_CHANGES = 25000
+N_PAYMENTS = 350000
 
 np.random.seed(2001)
 random.seed(2001)
