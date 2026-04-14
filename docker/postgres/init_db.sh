@@ -24,14 +24,14 @@ CREATE TABLE IF NOT EXISTS users (
     gender VARCHAR(10),
     acquisition_channel VARCHAR(30),
     is_enterprise BOOLEAN,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITHOUT TIME ZONE
 );
 
 CREATE TABLE IF NOT EXISTS products (
     product_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     product_name VARCHAR(100),
     category VARCHAR(50),
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITHOUT TIME ZONE
 );
 
 CREATE TABLE IF NOT EXISTS subscription_plans (
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS subscription_plans (
     billing_cycle VARCHAR(20),
     price DECIMAL(10,2),
     currency VARCHAR(10),
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITHOUT TIME ZONE,
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     end_date DATE,
     status VARCHAR(20),
     current_mrr DECIMAL(10,2),
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITHOUT TIME ZONE,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (plan_id) REFERENCES subscription_plans(plan_id)
 );
@@ -97,6 +97,15 @@ CREATE TABLE IF NOT EXISTS license_allocations (
     FOREIGN KEY (license_id) REFERENCES license_keys(license_id)
 );
 
+CREATE TABLE IF NOT EXISTS support_tickets (
+    ticket_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    category VARCHAR(50),
+    description TEXT,
+    created_at TIMESTAMP WITHOUT TIME ZONE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${POSTGRES_USER};
 
 EOSQL
@@ -117,5 +126,7 @@ psql "$POSTGRES_CONN_STR" \
 -c "\copy license_keys FROM '/master_db/licenses.csv' CSV HEADER"
 psql "$POSTGRES_CONN_STR" \
 -c "\copy license_allocations FROM '/master_db/allocations.csv' CSV HEADER"
+psql "$POSTGRES_CONN_STR" \
+-c "\copy support_tickets FROM '/master_db/support_tickets.csv' CSV HEADER"
 
 echo "PostgreSQL initialization completed!"
