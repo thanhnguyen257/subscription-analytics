@@ -68,6 +68,17 @@ CREATE TABLE IF NOT EXISTS subscription_changes (
     FOREIGN KEY (subscription_id) REFERENCES subscriptions(subscription_id)
 );
 
+CREATE TABLE IF NOT EXISTS payments (
+    payment_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    subscription_id BIGINT NOT NULL,
+    amount DECIMAL(10,2),
+    currency VARCHAR(10),
+    payment_status VARCHAR(20),
+    payment_date DATE,
+    payment_method VARCHAR(20),
+    FOREIGN KEY (subscription_id) REFERENCES subscriptions(subscription_id)
+);
+
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${POSTGRES_USER};
 
 EOSQL
@@ -82,6 +93,8 @@ psql "$POSTGRES_CONN_STR" \
 -c "\copy subscriptions FROM '/master_db/subscriptions.csv' CSV HEADER"
 psql "$POSTGRES_CONN_STR" \
 -c "\copy subscription_changes FROM '/master_db/changes.csv' CSV HEADER"
+psql "$POSTGRES_CONN_STR" \
+-c "\copy payments FROM '/master_db/payments.csv' CSV HEADER"
 
 
 echo "PostgreSQL initialization completed!"
