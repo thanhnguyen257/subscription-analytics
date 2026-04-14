@@ -88,6 +88,15 @@ CREATE TABLE IF NOT EXISTS license_keys (
     FOREIGN KEY (subscription_id) REFERENCES subscriptions(subscription_id)
 );
 
+CREATE TABLE IF NOT EXISTS license_allocations (
+    allocation_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    license_id BIGINT NOT NULL,
+    seat_number INT,
+    status VARCHAR(20),
+    allocation_date DATE,
+    FOREIGN KEY (license_id) REFERENCES license_keys(license_id)
+);
+
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${POSTGRES_USER};
 
 EOSQL
@@ -106,5 +115,7 @@ psql "$POSTGRES_CONN_STR" \
 -c "\copy payments FROM '/master_db/payments.csv' CSV HEADER"
 psql "$POSTGRES_CONN_STR" \
 -c "\copy license_keys FROM '/master_db/licenses.csv' CSV HEADER"
+psql "$POSTGRES_CONN_STR" \
+-c "\copy license_allocations FROM '/master_db/allocations.csv' CSV HEADER"
 
 echo "PostgreSQL initialization completed!"
