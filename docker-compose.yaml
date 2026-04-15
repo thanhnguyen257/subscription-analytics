@@ -18,6 +18,8 @@ services:
             - POSTGRES_PORT=${POSTGRES_PORT}
             - POSTGRES_USER=${POSTGRES_USER}
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - POSTGRES_SCHEMA_SOURCE=${POSTGRES_SCHEMA_SOURCE}
+            - POSTGRES_SCHEMA_LANDING=${POSTGRES_SCHEMA_LANDING}
         volumes:
             - postgres:/var/lib/postgresql/data
             - ./data/master_db:/master_db
