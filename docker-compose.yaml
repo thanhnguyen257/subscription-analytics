@@ -68,6 +68,55 @@ services:
                 condition: service_healthy
 
         restart: unless-stopped
+    event_ingest_api:
+        build:
+            context: .
+            dockerfile: docker/event_api/api.Dockerfile
+        container_name: event_ingest_api
+        networks:
+            - mock
+        ports:
+            - "${EVENT_INGEST_API_PORT}:${EVENT_INGEST_API_PORT}"
+        environment:
+            - POSTGRES_DB=${POSTGRES_DB}
+            - POSTGRES_PORT=${POSTGRES_PORT}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - POSTGRES_HOST=${POSTGRES_HOST}
+            - POSTGRES_SCHEMA_SOURCE=${POSTGRES_SCHEMA_SOURCE}
+            - POSTGRES_SCHEMA_LANDING=${POSTGRES_SCHEMA_LANDING}
+        depends_on:
+            postgres:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD-SHELL", "curl -f http://localhost:${EVENT_INGEST_API_PORT}/health || exit 1"]
+            interval: 5s
+            timeout: 3s
+            retries: 5
+            start_period: 5s
+
+    event_data_generator:
+        build:
+            context: .
+            dockerfile: docker/event_api/generator.Dockerfile
+        container_name: event_data_generator
+        networks:
+            - mock
+        environment:
+            - EVENT_INGEST_API_PORT=${EVENT_INGEST_API_PORT}
+            - POSTGRES_DB=${POSTGRES_DB}
+            - POSTGRES_PORT=${POSTGRES_PORT}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - POSTGRES_HOST=${POSTGRES_HOST}
+            - POSTGRES_SCHEMA_SOURCE=${POSTGRES_SCHEMA_SOURCE}
+            - POSTGRES_SCHEMA_LANDING=${POSTGRES_SCHEMA_LANDING}
+        depends_on:
+            postgres:
+                condition: service_healthy
+            event_ingest_api:
+                condition: service_healthy
+            
 
 volumes:
     pgadmin:

@@ -134,5 +134,16 @@ psql "$POSTGRES_CONN_STR" \
 psql "$POSTGRES_CONN_STR" \
 -c "\copy ${POSTGRES_SCHEMA_SOURCE}.support_tickets FROM '/master_db/support_tickets.csv' CSV HEADER"
 
+psql "$POSTGRES_CONN_STR" <<-EOSQL
+
+CREATE TABLE IF NOT EXISTS ${POSTGRES_SCHEMA_LANDING}.staging_usage_events (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    data JSONB,
+    created_at TIMESTAMP DEFAULT NOW(),
+    processed BOOLEAN DEFAULT FALSE
+);
+
+EOSQL
+
 
 echo "PostgreSQL initialization completed!"

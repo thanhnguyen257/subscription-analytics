@@ -9,7 +9,7 @@ import os
 
 load_dotenv()
 
-API_URL = "http://localhost:8000/events"
+API_URL = "http://event_ingest_api:8000/events"
 
 DEVICES = ["mobile", "web", "tablet"]
 PLATFORMS = ["iOS", "Android", "Web"]
