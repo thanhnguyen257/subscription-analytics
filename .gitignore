@@ -3,3 +3,5 @@ master_db
 __pycache__
 *.pyc
 *:Zone.Identifier
+docker/airflow/*
+!docker/airflow/dags

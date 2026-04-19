@@ -6,6 +6,30 @@ CONN_STR="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${
 
 echo "Initializing PostgreSQL database..."
 
+psql -v ON_ERROR_STOP=1 -U "${POSTGRES_USER}" -d postgres -c \
+"SELECT 1 FROM pg_database WHERE datname='airflow'" | grep -q 1 || \
+psql -U "${POSTGRES_USER}" -d postgres -c "CREATE DATABASE airflow"
+
+psql -U "${POSTGRES_USER}" -d postgres -c "DO \$\$
+BEGIN
+   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'airflow') THEN
+      CREATE ROLE airflow LOGIN PASSWORD 'airflow';
+   END IF;
+END
+\$\$;"
+
+psql -U "${POSTGRES_USER}" -d postgres -c \
+"GRANT ALL PRIVILEGES ON DATABASE airflow TO airflow;"
+
+psql -U "${POSTGRES_USER}" -d airflow -c \
+"GRANT ALL ON SCHEMA public TO airflow;"
+
+psql -U "${POSTGRES_USER}" -d airflow -c \
+"ALTER SCHEMA public OWNER TO airflow;"
+
+psql -U "${POSTGRES_USER}" -d airflow -c \
+"ALTER DATABASE airflow OWNER TO airflow;"
+
 psql --set ON_ERROR_STOP=1 "$CONN_STR" -tc \
 "SELECT 1 FROM pg_database WHERE datname='${POSTGRES_DB}'" | grep -q 1 || \
 psql "$CONN_STR" -c "CREATE DATABASE ${POSTGRES_DB}"
