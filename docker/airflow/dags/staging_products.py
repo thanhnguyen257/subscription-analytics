@@ -1,10 +1,10 @@
 from airflow.sdk import dag, task
-from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
-from airflow.exceptions import AirflowFailException
+from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
 from datetime import datetime
 from airflow.models import Variable
+from airflow.exceptions import AirflowFailException
 
-path = "/opt/airflow/data/master_db/products.csv"
 @dag(
     dag_id="create_products",
     start_date=datetime(2026, 4, 1),
@@ -17,14 +17,30 @@ def create_products():
     config = Variable.get("dag_config", default_var=None, deserialize_json=True)
     if not config:
         raise AirflowFailException("Missing 'dag_config'. Run DAG 'config' first.")
-    CONN_ID = config["conn_id"]
-    STAGING_DB = config["databases"]
-    create_products_sql = SQLExecuteQueryOperator(
-        task_id="create_products",
-        conn_id=CONN_ID,
-        database=STAGING_DB,
-        sql='sql/staging_products.sql'
-    )
-        
-    create_products_sql
+    POSTGRES_CONN_ID = config["conn_id"]
+    BLOB_CONN_ID = "blob_storage"
+    CONTAINER_NAME = "raw"
+    BLOB_FILE_NAME = "staging_products.sql"
+
+    @task
+    def create_plans_sql():
+        blob_hook = WasbHook(wasb_conn_id=BLOB_CONN_ID)
+
+        sql_content = blob_hook.read_file(
+            container_name=CONTAINER_NAME,
+            blob_name=BLOB_FILE_NAME,
+        )
+
+        pg_hook = PostgresHook(postgres_conn_id=POSTGRES_CONN_ID)
+        conn = pg_hook.get_conn()
+        cursor = conn.cursor()
+
+        cursor.execute(sql_content)
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+    create_plans_sql()
+
 create_products()

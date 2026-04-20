@@ -15,12 +15,10 @@ def create_tables():
     config = Variable.get("dag_config", default_var=None, deserialize_json=True)
     if not config:
         raise AirflowFailException("Missing 'dag_config'. Run DAG 'config' first.")
-    CONN_ID = config["conn_id"]
-    STAGING_DB = config["databases"]
+    POSTGRES_CONN_ID = config["conn_id"]
     tables = SQLExecuteQueryOperator(
         task_id="create_tables_staging_1",
-        conn_id=CONN_ID,
-        database=STAGING_DB,
+        conn_id=POSTGRES_CONN_ID,
         sql="""
     CREATE TABLE IF NOT EXISTS public.payments (
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
