@@ -4,7 +4,7 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 from datetime import datetime
 from airflow.models import Variable
 from airflow.exceptions import AirflowFailException
-# Define the absolute path to the users.csv
+
 path = "/opt/airflow/data/master_db/users.csv"
 @dag(
     dag_id="create_users",
@@ -19,9 +19,7 @@ def create_users():
         raise AirflowFailException("Missing 'dag_config'. Run DAG 'config' first.")
     CONN_ID = config["conn_id"]
     @task
-    def store_users():        
-        print(config)
-
+    def store_users():
         hook = PostgresHook(postgres_conn_id=CONN_ID)
         hook.copy_expert(
             sql="""

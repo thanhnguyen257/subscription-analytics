@@ -4,7 +4,7 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 from datetime import datetime
 from airflow.models import Variable
 from airflow.exceptions import AirflowFailException
-# Define the absolute path to the users.csv
+
 path = "/opt/airflow/data/master_db/subscriptions.csv"
 @dag(
     dag_id="create_subscriptions",

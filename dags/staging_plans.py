@@ -3,7 +3,7 @@ from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.exceptions import AirflowFailException
 from datetime import datetime
 from airflow.models import Variable
-# Define the absolute path to the users.csv
+
 path = "/opt/airflow/data/master_db/plans.csv"
 @dag(
     dag_id="create_subscription_plans",
@@ -18,7 +18,7 @@ def create_plans():
     if not config:
         raise AirflowFailException("Missing 'dag_config'. Run DAG 'config' first.")
     CONN_ID = config["conn_id"]
-    STAGING_DB = config["databases"]["staging"]
+    STAGING_DB = config["databases"]
     create_plans_sql = SQLExecuteQueryOperator(
         task_id="create_plans",
         conn_id=CONN_ID,

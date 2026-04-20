@@ -15,8 +15,8 @@ def set_variable():
         Variable.set(
             "dag_config",
             {
-                "conn_id": "mock",
-                "databases": {"staging":"staging_area", "original":"original_area"}
+                "conn_id": "postgres",
+                "databases": "postgres"
             },
             serialize_json=True
         )
