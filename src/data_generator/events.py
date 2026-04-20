@@ -3,7 +3,7 @@ import random
 import time
 import requests
 from datetime import datetime, timedelta
-import psycopg2
+import pyodbc
 from dotenv import load_dotenv
 import os
 
@@ -15,12 +15,15 @@ DEVICES = ["mobile", "web", "tablet"]
 PLATFORMS = ["iOS", "Android", "Web"]
 
 def load_active_subscriptions():
-    conn = psycopg2.connect(
-        host=os.getenv('POSTGRES_HOST'),
-        port=os.getenv('POSTGRES_PORT'),
-        database=os.getenv('POSTGRES_DB'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD')
+    conn = pyodbc.connect(
+        f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+        f"SERVER={os.getenv('AZURE_SQL_SERVER')};"
+        f"DATABASE={os.getenv('AZURE_SQL_DATABASE')};"
+        f"UID={os.getenv('AZURE_SQL_USER')};"
+        f"PWD={os.getenv('AZURE_SQL_PASSWORD')};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
     )
     cur = conn.cursor()
 

@@ -21,7 +21,7 @@ def ingest_event(event: dict):
         cur = conn.cursor()
 
         cur.execute(
-            f"INSERT INTO {os.getenv('POSTGRES_SCHEMA_LANDING')}.usage_events_raw (data) VALUES (%s)",
+            f"INSERT INTO usage_events_raw (data) VALUES (%s)",
             [json.dumps(event)]
         )
 
