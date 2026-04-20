@@ -15,11 +15,14 @@ def create_tables():
     config = Variable.get("dag_config", default_var=None, deserialize_json=True)
     if not config:
         raise AirflowFailException("Missing 'dag_config'. Run DAG 'config' first.")
-    POSTGRES_CONN_ID = config["conn_id"]
+    POSTGRES_CONN_ID = config["postgres_conn_id"]
     tables = SQLExecuteQueryOperator(
         task_id="create_tables_staging_1",
         conn_id=POSTGRES_CONN_ID,
         sql="""
+
+    CREATE SCHEMA staging;
+
     CREATE TABLE IF NOT EXISTS public.payments (
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         payment_id BIGINT,
@@ -85,20 +88,40 @@ def create_tables():
         change_date DATE
     );
 
-    CREATE TABLE IF NOT EXISTS public.license_keys (
-        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        subscription_id BIGINT NOT NULL,
+    CREATE TABLE IF NOT EXISTS staging.license_keys_stg (
+        source_license_id BIGINT,
+        subscription_id BIGINT,
         max_seats INT,
         issued_date DATE,
         expiry_date DATE
     );
 
-    CREATE TABLE IF NOT EXISTS public.license_allocations (
+    CREATE TABLE IF NOT EXISTS public.license_keys (
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        license_id BIGINT NOT NULL,
+        source_license_id BIGINT UNIQUE,
+        subscription_id BIGINT NOT NULL,
+        max_seats INT,
+        issued_date DATE,
+        expiry_date DATE,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS staging.license_allocations_stg (
+        source_allocation_id BIGINT,
+        source_license_id BIGINT,
         seat_number INT,
         status VARCHAR(20),
         allocation_date DATE
+    );
+
+    CREATE TABLE IF NOT EXISTS public.license_allocations (
+        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        source_allocation_id BIGINT UNIQUE,
+    source_license_id BIGINT NOT NULL,
+        seat_number INT,
+        status VARCHAR(20),
+        allocation_date DATE,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS public.support_tickets (
@@ -109,7 +132,15 @@ def create_tables():
         created_at TIMESTAMP WITHOUT TIME ZONE
     );
 
+    CREATE TABLE IF NOT EXISTS public.usage_events (
+        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        data JSONB,
+        created_at TIMESTAMP DEFAULT NOW(),
+        processed BOOLEAN DEFAULT FALSE
+    );
+
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA staging TO postgres;
     """
     )
 
