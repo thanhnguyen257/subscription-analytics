@@ -29,7 +29,7 @@ def load_active_subscriptions():
 
     cur.execute(f"""
         SELECT subscription_id, user_id, plan_id
-        FROM {os.getenv('POSTGRES_SCHEMA_SOURCE')}.subscriptions
+        FROM subscriptions
         WHERE status = 'active'
     """)
 

@@ -36,7 +36,7 @@ def ingest_event(event: dict):
         cur = conn.cursor()
 
         cur.execute(
-            f"INSERT INTO usage_events_raw (data) VALUES (%s)",
+            f"INSERT INTO usage_events (data) VALUES (%s)",
             [json.dumps(event)]
         )
 
