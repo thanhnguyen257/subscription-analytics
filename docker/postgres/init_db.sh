@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS support_tickets (
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ${POSTGRES_SCHEMA_SOURCE} TO ${POSTGRES_USER};
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${POSTGRES_USER};
 
 EOSQL
 
@@ -128,10 +128,5 @@ psql "$POSTGRES_CONN_STR" \
 -c "\copy license_allocations FROM '/master_db/allocations.csv' CSV HEADER"
 psql "$POSTGRES_CONN_STR" \
 -c "\copy support_tickets FROM '/master_db/support_tickets.csv' CSV HEADER"
-
-psql "$POSTGRES_CONN_STR" <<-EOSQL
-
-EOSQL
-
 
 echo "PostgreSQL initialization completed!"

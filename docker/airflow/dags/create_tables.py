@@ -21,8 +21,6 @@ def create_tables():
         conn_id=POSTGRES_CONN_ID,
         sql="""
 
-    CREATE SCHEMA staging;
-
     CREATE TABLE IF NOT EXISTS public.payments (
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         payment_id BIGINT,
@@ -88,40 +86,25 @@ def create_tables():
         change_date DATE
     );
 
-    CREATE TABLE IF NOT EXISTS staging.license_keys_stg (
-        source_license_id BIGINT,
+    CREATE TABLE IF NOT EXISTS public.license_keys (
+        license_id BIGINT,
         subscription_id BIGINT,
         max_seats INT,
         issued_date DATE,
-        expiry_date DATE
-    );
-
-    CREATE TABLE IF NOT EXISTS public.license_keys (
-        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        source_license_id BIGINT UNIQUE,
-        subscription_id BIGINT NOT NULL,
-        max_seats INT,
-        issued_date DATE,
         expiry_date DATE,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS staging.license_allocations_stg (
-        source_allocation_id BIGINT,
-        source_license_id BIGINT,
-        seat_number INT,
-        status VARCHAR(20),
-        allocation_date DATE
+        updated_at TIMESTAMP,
+        ingestion_time TIMESTAMP,
+        batch_id TEXT
     );
 
     CREATE TABLE IF NOT EXISTS public.license_allocations (
-        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        source_allocation_id BIGINT UNIQUE,
-    source_license_id BIGINT NOT NULL,
+        allocation_id BIGINT,
+        license_id BIGINT,
         seat_number INT,
         status VARCHAR(20),
         allocation_date DATE,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ingestion_time TIMESTAMP,
+        batch_id TEXT
     );
 
     CREATE TABLE IF NOT EXISTS public.support_tickets (
@@ -140,7 +123,6 @@ def create_tables():
     );
 
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
-    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA staging TO postgres;
     """
     )
 
