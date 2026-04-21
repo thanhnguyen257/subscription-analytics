@@ -15,11 +15,12 @@ def create_tables():
     config = Variable.get("dag_config", default_var=None, deserialize_json=True)
     if not config:
         raise AirflowFailException("Missing 'dag_config'. Run DAG 'config' first.")
-    POSTGRES_CONN_ID = config["conn_id"]
+    POSTGRES_CONN_ID = config["postgres_conn_id"]
     tables = SQLExecuteQueryOperator(
         task_id="create_tables_staging_1",
         conn_id=POSTGRES_CONN_ID,
         sql="""
+
     CREATE TABLE IF NOT EXISTS public.payments (
         id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         payment_id BIGINT,
@@ -86,19 +87,24 @@ def create_tables():
     );
 
     CREATE TABLE IF NOT EXISTS public.license_keys (
-        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        subscription_id BIGINT NOT NULL,
+        license_id BIGINT,
+        subscription_id BIGINT,
         max_seats INT,
         issued_date DATE,
-        expiry_date DATE
+        expiry_date DATE,
+        updated_at TIMESTAMP,
+        ingestion_time TIMESTAMP,
+        batch_id TEXT
     );
 
     CREATE TABLE IF NOT EXISTS public.license_allocations (
-        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        license_id BIGINT NOT NULL,
+        allocation_id BIGINT,
+        license_id BIGINT,
         seat_number INT,
         status VARCHAR(20),
-        allocation_date DATE
+        allocation_date DATE,
+        ingestion_time TIMESTAMP,
+        batch_id TEXT
     );
 
     CREATE TABLE IF NOT EXISTS public.support_tickets (
@@ -107,6 +113,13 @@ def create_tables():
         category VARCHAR(50),
         description TEXT,
         created_at TIMESTAMP WITHOUT TIME ZONE
+    );
+
+    CREATE TABLE IF NOT EXISTS public.usage_events (
+        id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        data JSONB,
+        created_at TIMESTAMP DEFAULT NOW(),
+        processed BOOLEAN DEFAULT FALSE
     );
 
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;

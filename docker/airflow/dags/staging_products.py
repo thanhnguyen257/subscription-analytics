@@ -17,7 +17,7 @@ def create_products():
     config = Variable.get("dag_config", default_var=None, deserialize_json=True)
     if not config:
         raise AirflowFailException("Missing 'dag_config'. Run DAG 'config' first.")
-    POSTGRES_CONN_ID = config["conn_id"]
+    POSTGRES_CONN_ID = config["postgres_conn_id"]
     BLOB_CONN_ID = "blob_storage"
     CONTAINER_NAME = "raw"
     BLOB_FILE_NAME = "staging_products.sql"

@@ -8,6 +8,21 @@ load_dotenv()
 
 app = FastAPI()
 
+@app.get("/health")
+def health():
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("POSTGRES_HOST"),
+            port=os.getenv('POSTGRES_PORT'),
+            dbname=os.getenv("POSTGRES_DB"),
+            user=os.getenv("POSTGRES_USER"),
+            password=os.getenv("POSTGRES_PASSWORD"),
+        )
+        conn.close()
+        return {"status": "ok"}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
+
 @app.post("/events")
 def ingest_event(event: dict):
     try:
@@ -21,7 +36,7 @@ def ingest_event(event: dict):
         cur = conn.cursor()
 
         cur.execute(
-            f"INSERT INTO usage_events_raw (data) VALUES (%s)",
+            f"INSERT INTO usage_events (data) VALUES (%s)",
             [json.dumps(event)]
         )
 

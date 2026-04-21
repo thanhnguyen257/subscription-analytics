@@ -9,7 +9,7 @@ import os
 
 load_dotenv()
 
-API_URL = "http://localhost:8000/events"
+API_URL = "http://event_ingest_api:8000/events"
 
 DEVICES = ["mobile", "web", "tablet"]
 PLATFORMS = ["iOS", "Android", "Web"]
@@ -29,7 +29,7 @@ def load_active_subscriptions():
 
     cur.execute(f"""
         SELECT subscription_id, user_id, plan_id
-        FROM {os.getenv('POSTGRES_SCHEMA_SOURCE')}.subscriptions
+        FROM subscriptions
         WHERE status = 'active'
     """)
 

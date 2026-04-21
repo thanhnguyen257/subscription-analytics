@@ -15,7 +15,8 @@ def set_variable():
         Variable.set(
             "dag_config",
             {
-                "conn_id": "postgres",
+                "postgres_conn_id": "postgres",
+                "azure_sql_conn_id": "azure_sql",
                 "databases": "postgres"
             },
             serialize_json=True
