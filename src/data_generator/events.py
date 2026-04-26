@@ -15,16 +15,7 @@ DEVICES = ["mobile", "web", "tablet"]
 PLATFORMS = ["iOS", "Android", "Web"]
 
 def load_active_subscriptions():
-    conn = pyodbc.connect(
-        f"DRIVER={{ODBC Driver 18 for SQL Server}};"
-        f"SERVER={os.getenv('AZURE_SQL_SERVER')};"
-        f"DATABASE={os.getenv('AZURE_SQL_DATABASE')};"
-        f"UID={os.getenv('AZURE_SQL_USER')};"
-        f"PWD={os.getenv('AZURE_SQL_PASSWORD')};"
-        "Encrypt=yes;"
-        "TrustServerCertificate=no;"
-        "Connection Timeout=30;"
-    )
+    conn = pyodbc.connect(os.getenv('AZURE_SQL_CONN_STR'))
     cur = conn.cursor()
 
     cur.execute(f"""

@@ -1,49 +1,107 @@
-from users import generate_users
-from products import generate_products
-from plans import generate_plans
-from subscriptions import generate_subscriptions
-from changes import generate_changes
-from payments import generate_payments
-from licenses import generate_licenses
-from allocations import generate_allocations
-from support_tickets import generate_support_tickets
+# main.py
 
-import os
+import argparse
 
-OUTPUT_DIR = "data/master_db"
+from config.settings import settings
+
+from generators.users import UsersGenerator
+from generators.products import ProductsGenerator
+from generators.subscription_plans import SubscriptionPlansGenerator
+from generators.subscriptions import SubscriptionsGenerator
+from generators.subscription_changes import SubscriptionChangesGenerator
+from generators.payments import PaymentsGenerator
+from generators.license_keys import LicenseKeysGenerator
+from generators.license_allocations import LicenseAllocationsGenerator
+from generators.support_tickets import SupportTicketsGenerator
+
+from relationships.churn_logic import (
+    identify_risky_users,
+    identify_payment_issues,
+    apply_churn_bias,
+    enforce_ticket_churn_link
+)
+
+from writers.csv_writer import write_csv
+from writers.sql_writer import write_sql
+from writers.blob_writer import BlobWriter
+from writers.sql_server_writer import write_to_sql_server
+
 
 def main():
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    users_df = generate_users()
-    products_df = generate_products()
-    plans_df = generate_plans(products_df)
-    subs_df = generate_subscriptions(users_df, plans_df)
-    changes_df = generate_changes(subs_df, plans_df)
-    payments_df = generate_payments(subs_df, plans_df)
-    licenses_df = generate_licenses(subs_df, plans_df)
-    allocations_df = generate_allocations(licenses_df)
-    tickets_df = generate_support_tickets(
-        users_df,
-        subs_df,
-        payments_df,
-        kaggle_paths=[
-            "data/support_ticket_data/customer_support_tickets_1.csv",
-            "data/support_ticket_data/customer_support_tickets_2.csv"
-        ]
-    )
+    parser = argparse.ArgumentParser()
 
-    users_df.to_csv(f"{OUTPUT_DIR}/users.csv", index=False)
-    products_df.to_csv(f"{OUTPUT_DIR}/products.csv", index=False)
-    plans_df.to_csv(f"{OUTPUT_DIR}/plans.csv", index=False)
-    subs_df.to_csv(f"{OUTPUT_DIR}/subscriptions.csv", index=False)
-    changes_df.to_csv(f"{OUTPUT_DIR}/changes.csv", index=False)
-    payments_df.to_csv(f"{OUTPUT_DIR}/payments.csv", index=False)
-    licenses_df.to_csv(f"{OUTPUT_DIR}/licenses.csv", index=False)
-    allocations_df.to_csv(f"{OUTPUT_DIR}/allocations.csv", index=False)
-    tickets_df.to_csv(f"{OUTPUT_DIR}/support_tickets.csv", index=False)
+    parser.add_argument("--mode", required=True, choices=["full", "incremental"])
+    parser.add_argument("--date")
+    parser.add_argument("--month")
 
-    print("Data generated successfully!")
+    args = parser.parse_args()
+
+    settings.MODE = args.mode
+    settings.EXECUTION_DATE = args.date
+    settings.EXECUTION_MONTH = args.month
+
+    print(f"Running mode={settings.MODE}")
+
+    users = UsersGenerator().generate()
+    print(f"Generated users: {len(users)}")
+
+    products = ProductsGenerator().generate()
+    print(f"Generated products: {len(products)}")
+
+    plans = SubscriptionPlansGenerator(products).generate()
+    print(f"Generated plans: {len(plans)}")
+
+    subs = SubscriptionsGenerator(users, plans).generate()
+    
+    changes = SubscriptionChangesGenerator(subs, plans).generate()
+    print(f"Generated changes: {len(changes)}")
+
+    payments = PaymentsGenerator(subs, plans).generate()
+    print(f"Generated payments: {len(payments)}")
+
+    licenses = LicenseKeysGenerator(subs, plans).generate()
+    print(f"Generated licenses: {len(licenses)}")
+
+    allocations = LicenseAllocationsGenerator(licenses).generate()
+    print(f"Generated allocations: {len(allocations)}")
+
+    tickets = SupportTicketsGenerator(users, subs, payments).generate()
+
+    risky_users = identify_risky_users(tickets)
+    problematic_subs = identify_payment_issues(payments)
+
+    subs = apply_churn_bias(subs, risky_users, problematic_subs)
+    print(f"Generated subscriptions: {len(subs)}")
+
+    tickets = enforce_ticket_churn_link(tickets, subs)
+    print(f"Generated tickets: {len(tickets)}")
+
+    blob = BlobWriter()
+
+    users_path = write_csv(users, "users")
+    products_sql = write_sql(products, "products")
+    plans_sql = write_sql(plans, "subscription_plans")
+
+    subs_path = write_csv(subs, "subscriptions")
+    changes_path = write_csv(changes, "subscription_changes")
+    payments_path = write_csv(payments, "payments")
+
+    tickets_path = write_csv(tickets, "support_tickets")
+
+    blob.upload_file(users_path, "users")
+    blob.upload_file(subs_path, "subscriptions")
+    blob.upload_file(changes_path, "subscription_changes")
+    blob.upload_file(payments_path, "payments")
+    blob.upload_file(tickets_path, "support_tickets")
+
+    blob.upload_file(products_sql, "products")
+    blob.upload_file(plans_sql, "subscription_plans")
+
+    write_to_sql_server(subs, "subscriptions")
+    write_to_sql_server(licenses, "license_keys")
+    write_to_sql_server(allocations, "license_allocations")
+
 
 if __name__ == "__main__":
     main()

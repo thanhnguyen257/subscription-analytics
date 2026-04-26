@@ -1,5 +1,6 @@
 .env
-master_db
+data/*
+!data/support_ticket_data
 __pycache__
 *.pyc
 *:Zone.Identifier

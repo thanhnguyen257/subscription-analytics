@@ -102,10 +102,7 @@ services:
             - POSTGRES_USER=${POSTGRES_USER}
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
             - POSTGRES_HOST=${POSTGRES_HOST}
-            - AZURE_SQL_SERVER=${AZURE_SQL_SERVER}
-            - AZURE_SQL_DATABASE=${AZURE_SQL_DATABASE}
-            - AZURE_SQL_USER=${AZURE_SQL_USER}
-            - AZURE_SQL_PASSWORD=${AZURE_SQL_PASSWORD}
+            - AZURE_SQL_CONN_STR=${AZURE_SQL_CONN_STR}
         depends_on:
             event_ingest_api:
                 condition: service_healthy
