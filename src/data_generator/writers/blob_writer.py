@@ -28,7 +28,7 @@ class BlobWriter:
 
     def _upload_single_file(self, local_path: str, table_name: str):
 
-        blob_name = f"{table_name}/{os.path.basename(local_path)}"
+        blob_name = f"raw-files/{table_name}/{os.path.basename(local_path)}"
 
         blob_client = self.client.get_blob_client(
             container=settings.BLOB_CONTAINER,

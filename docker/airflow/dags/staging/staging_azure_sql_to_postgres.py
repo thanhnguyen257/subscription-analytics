@@ -8,7 +8,7 @@ AZURE_SQL_CONN_ID = "azure_sql"
 BATCH_SIZE = 5000
 
 @dag(
-    dag_id="azure_sql_to_postgres_daily",
+    dag_id="staging_azure_sql_to_postgres_daily",
     schedule="@daily",
     start_date=datetime(2026, 4, 1),
     catchup=False,
@@ -51,7 +51,7 @@ def azure_sql_to_postgres():
         azure = OdbcHook(
             odbc_conn_id=AZURE_SQL_CONN_ID,
             driver="ODBC Driver 18 for SQL Server",
-            database="sqlserver-subscriptions"
+            database="mock-project-azure-sql"
         )
 
         batch_id = "{{ ts_nodash }}"

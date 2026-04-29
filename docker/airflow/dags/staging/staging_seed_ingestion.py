@@ -7,7 +7,7 @@ import re
 
 POSTGRES_CONN_ID = "postgres"
 BLOB_CONN_ID = "blob_storage"
-CONTAINER_NAME = "raw"
+CONTAINER_NAME = "mock-project-source"
 
 def fix_timestamp(sql):
     # add quotes around datetime patterns
@@ -18,7 +18,7 @@ def fix_timestamp(sql):
     )
 
 @dag(
-    dag_id="seed_ingestion_weekly",
+    dag_id="staging_seed_ingestion_weekly",
     schedule="@weekly",
     start_date=datetime(2026, 4, 1),
     catchup=False,
@@ -63,8 +63,8 @@ def seed_ingestion():
         batch_id = "{{ ts_nodash }}"
 
         files = [
-            "products/products.sql",
-            "subscription_plans/subscription_plans.sql"
+            "raw-files/products/products.sql",
+            "raw-files/subscription_plans/subscription_plans.sql"
         ]
 
         conn = pg.get_conn()

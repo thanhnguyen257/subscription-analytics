@@ -38,8 +38,8 @@ class Settings:
 
     AZURE_SQL_CONN_STR: str = os.getenv('AZURE_SQL_CONN_STR')
     ADLS_CONNECTION_STR: str = os.getenv('ADLS_CONNECTION_STR')
-    BLOB_CONTAINER: str = "raw"
-    STORAGE_ACCOUNT: str = "stanalyticsstorage"
+    BLOB_CONTAINER: str = "mock-project-source"
+    STORAGE_ACCOUNT: str = "mockprojectstorage"
 
 # singleton
 settings = Settings()
