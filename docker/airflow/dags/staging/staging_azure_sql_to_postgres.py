@@ -81,7 +81,7 @@ def azure_sql_to_postgres():
             enriched = []
             for r in rows:
                 enriched.append(tuple(list(r) + [
-                    datetime.utcnow(),
+                    datetime.now(),
                     f"azure_sql.{table_name}",
                     batch_id
                 ]))
