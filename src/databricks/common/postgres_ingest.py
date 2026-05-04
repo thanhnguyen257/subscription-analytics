@@ -99,7 +99,7 @@ class PostgresBronzeIngest:
     # -----------------------------
     def enrich(self, df):
         print("[INFO] Adding metadata columns")
-
+        
         return (
             df.withColumn("ingest_time", F.current_timestamp())
             .withColumn("batch_id", F.lit(self.batch_id))

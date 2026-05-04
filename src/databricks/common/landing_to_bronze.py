@@ -1,6 +1,7 @@
 from pyspark.sql.functions import col
 from pyspark.sql import functions as F
 from delta.tables import DeltaTable
+import uuid
 
 
 class LandingToBronzeIngest:
@@ -11,7 +12,8 @@ class LandingToBronzeIngest:
         entity,
         landing_base_path="/Volumes/datalake_catalog/datalake_schema/landing",
         bronze_base_path="/Volumes/datalake_catalog/datalake_schema/bronze",
-        watermark_col="dw_ingested_at"
+        watermark_col="dw_ingested_at",
+        batch_id=None
     ):
         self.spark = spark
         self.entity = entity
@@ -19,9 +21,20 @@ class LandingToBronzeIngest:
 
         self.landing_path = f"{landing_base_path}/{entity}"
         self.bronze_path = f"{bronze_base_path}/{entity}"
+        self.batch_id = batch_id or str(uuid.uuid4())
+        self.table_name = entity
 
     def is_empty(self, df):
         return df.limit(1).count() == 0
+    
+    def enrich(self, df):
+        print("[INFO] Adding metadata columns")
+
+        return (
+            df.withColumn("ingest_time", F.current_timestamp())
+              .withColumn("batch_id", F.lit(self.batch_id))
+              .withColumn("source_table", F.lit(self.table_name))
+        )
 
     # -----------------------------
     # Get last watermark
@@ -92,6 +105,9 @@ class LandingToBronzeIngest:
                 print("[INFO] No new data to process")
                 return
 
+            print("[INFO] Enriching data with metadata")
+            df = self.enrich(df)
+            
             count = df.count()
             print(f"[INFO] Rows to write: {count}")
 
