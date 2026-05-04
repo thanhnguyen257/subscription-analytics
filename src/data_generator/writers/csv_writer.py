@@ -48,6 +48,6 @@ def write_csv(df: pd.DataFrame, table_name: str):
 
         written_files.append(file_path)
 
-    print(f"✅ {table_name}: wrote {len(written_files)} partition files")
+    print(f"{table_name}: wrote {len(written_files)} partition files")
 
     return written_files

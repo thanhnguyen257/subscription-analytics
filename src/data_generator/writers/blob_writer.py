@@ -38,4 +38,4 @@ class BlobWriter:
         with open(local_path, "rb") as data:
             blob_client.upload_blob(data, overwrite=True)
 
-        print(f"☁️ Uploaded to Blob: {blob_name}")
+        print(f"Uploaded to Blob: {blob_name}")

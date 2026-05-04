@@ -70,10 +70,10 @@ def write_to_sql_server(df: pd.DataFrame, table_name: str, batch_size: int = 100
         df = clean_dataframe(df)
 
         if not table_exists(cursor, table_name):
-            print(f"⚙️ Creating table: {table_name}")
+            print(f"Creating table: {table_name}")
             create_table(cursor, df, table_name)
             conn.commit()
-            print(f"✅ Table created: {table_name}")
+            print(f"Table created: {table_name}")
 
         cols = ",".join([f"[{c}]" for c in df.columns])
         placeholders = ",".join(["?"] * len(df.columns))
@@ -88,7 +88,7 @@ def write_to_sql_server(df: pd.DataFrame, table_name: str, batch_size: int = 100
         cursor.fast_executemany = True
 
         total_rows = len(data)
-        print(f"🚀 Inserting {total_rows} rows in batches of {batch_size}...")
+        print(f"Inserting {total_rows} rows in batches of {batch_size}...")
 
         for i in range(0, total_rows, batch_size):
             batch = data[i:i + batch_size]
@@ -97,21 +97,21 @@ def write_to_sql_server(df: pd.DataFrame, table_name: str, batch_size: int = 100
                 cursor.executemany(sql, batch)
                 conn.commit()
             except Exception as e:
-                print(f"❌ Error in batch {i}-{i+batch_size}: {e}")
+                print(f"Error in batch {i}-{i+batch_size}: {e}")
 
                 # fallback: find bad row
                 for row in batch:
                     try:
                         cursor.execute(sql, row)
                     except Exception as row_error:
-                        print("💥 Bad row detected:", row)
+                        print("Bad row detected:", row)
                         raise row_error
 
                 raise e
 
-            print(f"✅ Inserted rows {i} → {min(i+batch_size, total_rows)}")
+            print(f"Inserted rows {i} → {min(i+batch_size, total_rows)}")
 
-        print(f"🎉 Done: Inserted {total_rows} rows into {table_name}")
+        print(f"Done: Inserted {total_rows} rows into {table_name}")
 
     finally:
         cursor.close()

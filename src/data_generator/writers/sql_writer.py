@@ -47,6 +47,6 @@ def write_sql(df: pd.DataFrame, table_name: str):
     with open(file_path, "w") as f:
         f.write(sql)
 
-    print(f"✅ SQL seed written: {file_path}")
+    print(f"SQL seed written: {file_path}")
 
     return file_path
