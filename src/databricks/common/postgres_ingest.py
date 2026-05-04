@@ -99,7 +99,7 @@ class PostgresBronzeIngest:
     # -----------------------------
     def enrich(self, df):
         print("[INFO] Adding metadata columns")
-        
+
         return (
             df.withColumn("ingest_time", F.current_timestamp())
             .withColumn("batch_id", F.lit(self.batch_id))
@@ -132,7 +132,7 @@ class PostgresBronzeIngest:
             # Better empty check
             if df.limit(1).count() == 0:
                 print("[INFO] No new data found")
-                return
+                return 0
 
             df = self.enrich(df)
 
@@ -142,6 +142,7 @@ class PostgresBronzeIngest:
             self.write_bronze(df)
 
             print("[SUCCESS] Ingestion completed")
+            return count
 
         except Exception as e:
             print(f"[ERROR] Failed ingestion: {str(e)}")

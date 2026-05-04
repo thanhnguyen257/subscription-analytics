@@ -103,17 +103,17 @@ class LandingToBronzeIngest:
 
             if self.is_empty(df):
                 print("[INFO] No new data to process")
-                return
+                return 0
 
-            print("[INFO] Enriching data with metadata")
             df = self.enrich(df)
-            
+
             count = df.count()
             print(f"[INFO] Rows to write: {count}")
 
             self.write_bronze(df)
 
             print("[SUCCESS] Ingestion completed")
+            return count
 
         except Exception as e:
             print(f"[ERROR] Failed {self.entity}: {str(e)}")
