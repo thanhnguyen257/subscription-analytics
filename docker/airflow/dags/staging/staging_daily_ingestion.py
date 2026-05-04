@@ -1,20 +1,24 @@
 from airflow.sdk import dag, task
+from airflow.operators.empty import EmptyOperator
+from airflow.models import Variable
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.odbc.hooks.odbc import OdbcHook
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
 from datetime import datetime
 
 POSTGRES_CONN_ID = "postgres"
 AZURE_SQL_CONN_ID = "azure_sql"
 BATCH_SIZE = 5000
 
+
 @dag(
-    dag_id="staging_azure_sql_to_postgres_daily",
+    dag_id="staging_daily_ingestion",
     schedule="@daily",
     start_date=datetime(2026, 4, 1),
     catchup=False,
-    tags=["staging"]
+    tags=["staging", "databricks"]
 )
-def azure_sql_to_postgres():
+def staging_daily_ingestion():
 
     @task
     def ensure_tables():
@@ -56,7 +60,6 @@ def azure_sql_to_postgres():
 
         batch_id = "{{ ts_nodash }}"
 
-        # ✅ Use created_at as watermark
         last_watermark = pg.get_first(f"""
             SELECT COALESCE(MAX(created_at), '1900-01-01')
             FROM {table_name}
@@ -68,7 +71,7 @@ def azure_sql_to_postgres():
             query = f"""
                 SELECT *
                 FROM {table_name}
-                WHERE created_at >= '{last_watermark}'   -- include boundary
+                WHERE created_at >= '{last_watermark}'
                 ORDER BY created_at, {pk_column}
                 OFFSET {offset} ROWS FETCH NEXT {BATCH_SIZE} ROWS ONLY
             """
@@ -78,15 +81,15 @@ def azure_sql_to_postgres():
             if not rows:
                 break
 
-            enriched = []
-            for r in rows:
-                enriched.append(tuple(list(r) + [
+            enriched = [
+                tuple(list(r) + [
                     datetime.now(),
                     f"azure_sql.{table_name}",
                     batch_id
-                ]))
+                ])
+                for r in rows
+            ]
 
-            # ✅ Insert with conflict protection (important)
             pg.insert_rows(
                 table=table_name,
                 rows=enriched,
@@ -112,6 +115,21 @@ def azure_sql_to_postgres():
     def load_license_allocations():
         load_table("license_allocations", "allocation_id")
 
-    ensure_tables() >> [load_license_keys(), load_license_allocations()]
 
-azure_sql_to_postgres()
+    run_csv_to_adls = DatabricksRunNowOperator(
+        task_id="run_csv_to_adls",
+        databricks_conn_id="databricks",
+        job_id=int(Variable.get("staging_pipline_job_id")),
+        notebook_params={
+            "batch_id": "{{ ts_nodash }}"
+        }
+    )
+
+    join_ingestion = EmptyOperator(task_id="join_ingestion")
+
+    ensure_tables() >> [load_license_keys(), load_license_allocations()]
+    [load_license_keys(), load_license_allocations()] >> run_csv_to_adls
+    run_csv_to_adls >> join_ingestion
+
+
+staging_daily_ingestion()
