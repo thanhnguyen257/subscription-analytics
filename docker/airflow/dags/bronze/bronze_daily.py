@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.models import Variable
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from datetime import datetime, timedelta
 
 with DAG(
@@ -23,3 +24,13 @@ with DAG(
             "batch_id": "{{ ts_nodash }}"
         }
     )
+
+    trigger_silver = TriggerDagRunOperator(
+        task_id="trigger_silver",
+        trigger_dag_id="silver_daily",
+        conf={
+            "batch_id": "{{ ts_nodash }}"
+        }
+    )
+
+    run_bronze_daily >> trigger_silver
